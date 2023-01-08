@@ -1,7 +1,7 @@
 import db from "../lib/db.js";
 import bcrypt from 'bcrypt';
 import AppError, {isAppError} from "../lib/AppError.js";
-import {generateToken} from "../lib/token.js";
+import {generateToken, RefreshTokenPayload, validateToken} from "../lib/token.js";
 import { User } from "@prisma/client";
 
 const SALT_ROUNDS = 10;
@@ -21,17 +21,29 @@ class UserService {
         return UserService.instance;
     }
 
-    async generateTokens(user: User) {
+    async createTokenId(userId: number) {
+        const token = await db.token.create({
+            data: {
+                userId,
+            },
+        })
+        return token.id;
+    }
+
+    async generateTokens(user: User, existingTokenId?: number) {
         const {id: userId, username} = user;
-        const [accessToken, refreshToken] = await Promise.all([generateToken({
+        const tokenId = existingTokenId ?? (await this.createTokenId(userId))
+
+        const [accessToken, refreshToken] = await Promise.all([
+        generateToken({
             type: 'access_token',
             userId,
-            tokenId: 1,
+            tokenId,
             username
         }),
         generateToken({
             type: 'refresh_token',
-            tokenId: 1,
+            tokenId,
             rotationCounter: 1,
         })]);
 
@@ -94,6 +106,26 @@ class UserService {
         return {
             user,
             tokens,
+        }
+    }
+
+    async refreshToken(token: string) {
+        try {
+            const { tokenId } = await validateToken<RefreshTokenPayload>(token)
+            const tokenItem = await db.token.findUnique({
+                where: {
+                    id: tokenId,
+                },
+                include: {
+                    user: true,
+                },
+            })
+            if (!tokenItem) {
+                throw new Error('Token not found')
+            }
+            return this.generateTokens(tokenItem.user, tokenId)
+        } catch (e) {
+            throw new AppError('RefreshTokenError')
         }
     }
 }

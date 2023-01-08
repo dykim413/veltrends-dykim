@@ -19,6 +19,7 @@ model User {
     passwordHash    String
     createdAt       DateTime @default(now())
     Item            Item[]
+    Token           Token[]
 }
 
 model Item {
@@ -27,4 +28,12 @@ model Item {
     description     String
     user            User    @relation(fields: [userId], references: [id])
     userId          Int
+}
+
+model Token {
+    id        Int      @id @default(autoincrement())
+    user      User     @relation(fields: [userId], references: [id])
+    userId    Int
+    createdAt DateTime @default(now())
+    blocked   Boolean  @default(false)
 }

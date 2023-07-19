@@ -1,15 +1,27 @@
 import { useGoBack } from '~/hooks/useGoBack';
-import styled from 'styled-components';
 import Header from '~/components/Header';
 import HeaderBackButton from '~/components/HeaderBackButton';
+import FullHeightPage from '~/components/FullHeightPage';
+import AuthForm from '~/components/AuthForm';
+import { ActionFunction, json } from '@remix-run/node';
+
+export const action: ActionFunction = async ({ request }) => {
+    const form = await request.formData();
+    const username = form.get('username');
+    const password = form.get('password');
+
+    return json({
+        username,
+        password,
+    });
+};
 
 export default function Login() {
     const goBack = useGoBack();
     return (
-        <Page>
+        <FullHeightPage>
             <Header title="로그인" headerLeft={<HeaderBackButton onClick={goBack} />} />
-        </Page>
+            <AuthForm mode="login" />
+        </FullHeightPage>
     );
 }
-
-const Page = styled.div``;

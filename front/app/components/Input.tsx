@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import colors from '~/lib/colors';
 
-export interface Props extends React.HTMLAttributes<HTMLInputElement> {}
+export interface Props extends React.InputHTMLAttributes<HTMLInputElement> {}
 
 function Input(props: Props) {
     return <StyledInput {...props} />;
@@ -18,6 +18,9 @@ const StyledInput = styled.input`
     color: ${colors.gray5};
     &:focus {
         border: 1px solid ${colors.primary};
+    }
+    &::placeholder {
+        color: ${colors.gray2};
     }
 `;
 

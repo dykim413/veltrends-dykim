@@ -5,13 +5,30 @@ import Header from '~/components/Header';
 import FullHeightPage from '~/components/FullHeightPage';
 import AuthForm from '~/components/AuthForm';
 import { ActionFunction, json } from '@remix-run/node';
+import { register } from '~/lib/api/auth';
+import { extractError } from '~/lib/error';
+import { useCatch } from '@remix-run/react';
 
 export const action: ActionFunction = async ({ request }) => {
-    console.log('register page');
+    const form = await request.formData();
+    const username = form.get('username');
+    const password = form.get('password');
 
-    return json({
-        wetwe: 'xxx',
-    });
+    if (typeof username !== 'string' || typeof password !== 'string') {
+        return;
+    }
+
+    try {
+        const { headers, result } = await register({ username, password });
+        return json(result, {
+            headers,
+        });
+    } catch (e) {
+        const error = extractError(e);
+        throw json(error, {
+            status: error.statusCode,
+        });
+    }
 };
 
 export default function Register() {
@@ -22,4 +39,10 @@ export default function Register() {
             <AuthForm mode="register" />
         </FullHeightPage>
     );
+}
+
+export function CatchBoundary() {
+    const caught = useCatch();
+    console.log(caught);
+    return <div>Hello 23123</div>;
 }

@@ -23,6 +23,10 @@ const StyledButton = styled.button<ButtonProps>`
     padding: 0 16px;
     font-weight: 600;
     border-radius: 4px;
+    transition: filter 0.25s ease-in-out;
+    &:disabled {
+        filter: grayscale(0.6);
+    }
     ${(props) =>
         props.layoutMode === 'fullWidth' &&
         css`

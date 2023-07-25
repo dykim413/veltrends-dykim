@@ -43,6 +43,5 @@ export default function Register() {
 
 export function CatchBoundary() {
     const caught = useCatch();
-    console.log(caught);
     return <div>Hello 23123</div>;
 }

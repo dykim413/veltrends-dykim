@@ -4,11 +4,18 @@ import HeaderBackButton from '~/components/HeaderBackButton';
 import FullHeightPage from '~/components/FullHeightPage';
 import AuthForm from '~/components/AuthForm';
 import { ActionFunction, json } from '@remix-run/node';
+import { login } from '~/lib/api/auth';
 
 export const action: ActionFunction = async ({ request }) => {
     const form = await request.formData();
     const username = form.get('username');
     const password = form.get('password');
+
+    if (typeof username !== 'string' || typeof password !== 'string') {
+        return;
+    }
+
+    const { headers, result } = await login({ username, password });
 
     return json({
         username,

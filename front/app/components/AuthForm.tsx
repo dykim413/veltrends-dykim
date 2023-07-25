@@ -43,6 +43,7 @@ function AuthForm({ mode }: Props) {
         question,
         actionLink,
     } = authDescriptions[mode];
+
     return (
         <Block method="post">
             <InputGroup>

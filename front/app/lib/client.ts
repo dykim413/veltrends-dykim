@@ -5,7 +5,7 @@ client.defaults.baseURL = 'http://localhost:4000';
 //client.defaults.withCredentials = true;
 
 // API 요청하는 콜마다 헤더에 담아 보낼 값 설정
-export function setClientCookie(cookie: string, token: string) {
+export function setClientCookie(cookie: string, token?: string) {
     client.defaults.headers.common['Cookie'] = cookie;
     client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     client.defaults.headers.common['Accept'] = 'application/json';

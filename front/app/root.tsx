@@ -11,6 +11,7 @@ import {
 import GlobalStyle from '~/components/GlobalStyle';
 import { getMyAccount, User } from './lib/api/auth';
 import { setClientCookie } from './lib/client';
+import { extractError } from '~/lib/error';
 
 export const meta: MetaFunction = () => ({
     charset: 'utf-8',
@@ -25,7 +26,17 @@ export const loader: LoaderFunction = async ({ request }) => {
     }
 
     setClientCookie(cookie);
-    return await getMyAccount();
+
+    try {
+        const me = await getMyAccount();
+        return me;
+    } catch (e) {
+        const error = extractError(e);
+        if (error.name === 'UnauthorizedError') {
+            console.log(error.payload);
+        }
+        return null;
+    }
 };
 
 export default function App() {

@@ -4,10 +4,17 @@ import HeaderBackButton from '~/components/HeaderBackButton';
 import Header from '~/components/Header';
 import FullHeightPage from '~/components/FullHeightPage';
 import AuthForm from '~/components/AuthForm';
-import { ActionFunction, json } from '@remix-run/node';
+import {
+    ActionFunction,
+    json,
+    createCookie,
+    Response,
+    Headers,
+    unstable_composeUploadHandlers,
+} from '@remix-run/node';
 import { register } from '~/lib/api/auth';
-import { extractError } from '~/lib/error';
-import { useCatch } from '@remix-run/react';
+import { AppError, extractError } from '~/lib/error';
+import { ThrownResponse, useCatch } from '@remix-run/react';
 
 export const action: ActionFunction = async ({ request }) => {
     const form = await request.formData();
@@ -31,17 +38,21 @@ export const action: ActionFunction = async ({ request }) => {
     }
 };
 
-export default function Register() {
+interface Props {
+    error?: AppError;
+}
+
+export default function Register({ error }: Props) {
     const goBack = useGoBack();
     return (
         <FullHeightPage>
             <Header title="회원가입" headerLeft={<HeaderBackButton onClick={goBack} />} />
-            <AuthForm mode="register" />
+            <AuthForm mode="register" error={error} />
         </FullHeightPage>
     );
 }
 
 export function CatchBoundary() {
-    const caught = useCatch();
-    return <div>Hello 23123</div>;
+    const caught = useCatch<ThrownResponse<number, AppError>>();
+    return <Register error={caught.data} />;
 }

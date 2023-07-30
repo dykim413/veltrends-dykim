@@ -4,6 +4,9 @@ import Button from '~/components/Button';
 import QuestionLink from '~/components/QuestionLink';
 import { Form, useActionData } from '@remix-run/react';
 import { useFormLoading } from '~/hooks/useFormLoading';
+import AppError from '../../../server/src/lib/AppError';
+import { useMemo, useState } from 'react';
+import { isValidPassword, isValidUsername } from '~/lib/regex';
 
 interface ActionData {
     text: 'hello world';
@@ -11,6 +14,7 @@ interface ActionData {
 
 interface Props {
     mode: 'login' | 'register';
+    error?: AppError;
 }
 
 const authDescriptions = {
@@ -32,9 +36,13 @@ const authDescriptions = {
     },
 } as const;
 
-function AuthForm({ mode }: Props) {
+function AuthForm({ mode, error }: Props) {
     const action = useActionData<ActionData | undefined>();
     const isLoading = useFormLoading();
+
+    const [isInvalidUsername, setIsInvalidUsername] = useState(false);
+    const [isInvalidPassword, setIsInvalidPassword] = useState(false);
+
     const {
         usernamePlaceholder,
         passwordPlaceholder,
@@ -44,33 +52,77 @@ function AuthForm({ mode }: Props) {
         actionLink,
     } = authDescriptions[mode];
 
+    const usernameErrorMessage = useMemo(() => {
+        if (isInvalidUsername) {
+            return '5~20자 사이의 영문 소문자 또는 숫자를 입력해주세요.';
+        }
+
+        if (error?.name === 'UserExistsError') {
+            return '이미 존재하는 계정입니다.';
+        }
+        return undefined;
+    }, [error, isInvalidUsername]);
+
     return (
-        <Block method="post">
+        <StyledForm
+            method="post"
+            onSubmit={(e) => {
+                if (mode !== 'register') return;
+                const form = new FormData(e.currentTarget);
+                const username = form.get('username');
+                const password = form.get('password');
+                if (typeof username !== 'string' || typeof password !== 'string') {
+                    e.preventDefault();
+                    return;
+                }
+                if (!isValidUsername(username) || !isValidPassword(password)) {
+                    e.preventDefault();
+                    return;
+                }
+            }}
+        >
             <InputGroup>
                 <LabelInput
                     label="아이디"
                     name="username"
                     placeholder={usernamePlaceholder}
                     disabled={isLoading}
+                    errorMessage={usernameErrorMessage}
+                    onBlur={(e) => {
+                        if (mode !== 'register') return;
+                        setIsInvalidUsername(!isValidUsername(e.target.value));
+                    }}
                 />
                 <LabelInput
                     label="비밀번호"
                     name="password"
                     placeholder={passwordPlaceholder}
                     disabled={isLoading}
+                    onBlur={(e) => {
+                        if (mode !== 'register') return;
+                        setIsInvalidPassword(!isValidPassword(e.currentTarget.value));
+                    }}
+                    errorMessage={
+                        isInvalidPassword
+                            ? '8자 이상, 영문/숫자/특수문자 중 2가지 이상 입력해주세요.'
+                            : undefined
+                    }
                 />
             </InputGroup>
             <ActionsBox>
+                {error?.name === 'AuthenticationError' ? (
+                    <ActionErrorMessage>잘못된 계정 정보입니다.</ActionErrorMessage>
+                ) : null}
                 <Button type="submit" layoutMode="fullWidth" disabled={isLoading}>
                     {buttonText}
                 </Button>
                 <QuestionLink question={question} name={actionText} to={actionLink} />
             </ActionsBox>
-        </Block>
+        </StyledForm>
     );
 }
 
-const Block = styled(Form)`
+const StyledForm = styled(Form)`
     display: flex;
     flex-direction: column;
     padding: 16px;
@@ -90,6 +142,12 @@ const ActionsBox = styled.div`
     flex-direction: column;
     align-items: center;
     gap: 24px;
+`;
+
+const ActionErrorMessage = styled.div`
+    text-align: center;
+    color: red;
+    font-size: 14px;
 `;
 
 export default AuthForm;

@@ -1,18 +1,21 @@
 import styled from 'styled-components';
 import colors from '~/lib/colors';
+import { forwardRef } from 'react';
 
 export interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
-    errorMessage?: string;
+    errorMessage?: string | null;
 }
 
-function Input({ errorMessage, ...rest }: Props) {
+const Input = forwardRef<HTMLInputElement, Props>(({ errorMessage, ...rest }: Props, ref) => {
     return (
         <>
-            <StyledInput {...rest} />
+            <StyledInput {...rest} ref={ref} />
             {errorMessage ? <Message>{errorMessage}</Message> : null}
         </>
     );
-}
+});
+
+Input.displayName = 'Input';
 
 const StyledInput = styled.input`
     height: 48px;

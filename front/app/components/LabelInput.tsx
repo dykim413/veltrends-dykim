@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { forwardRef, useState } from 'react';
 import styled, { css } from 'styled-components';
 import colors from '~/lib/colors';
 import Input, { Props as InputProps } from './Input';
@@ -7,25 +7,28 @@ interface Props extends InputProps {
     label: string;
 }
 
-function LabelInput({ label, onBlur, onFocus, ...rest }: Props) {
-    const [focused, setFocused] = useState(false);
-    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-        onFocus?.(e);
-        setFocused(true);
-    };
+const LabelInput = forwardRef<HTMLInputElement, Props>(
+    ({ label, onBlur, onFocus, ...rest }: Props, ref) => {
+        const [focused, setFocused] = useState(false);
+        const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+            onFocus?.(e);
+            setFocused(true);
+        };
+        const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+            onBlur?.(e);
+            setFocused(false);
+        };
 
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-        onBlur?.(e);
-        setFocused(false);
-    };
+        return (
+            <Block>
+                <Label focused={focused}>{label}</Label>
+                <Input onFocus={handleFocus} onBlur={handleBlur} {...rest} ref={ref} />
+            </Block>
+        );
+    },
+);
 
-    return (
-        <Block>
-            <Label focused={focused}>{label}</Label>
-            <Input onFocus={handleFocus} onBlur={handleBlur} {...rest} />
-        </Block>
-    );
-}
+LabelInput.displayName = 'LabelInput';
 
 const Block = styled.div`
     display: flex;

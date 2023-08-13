@@ -4,14 +4,7 @@ import HeaderBackButton from '~/components/HeaderBackButton';
 import Header from '~/components/Header';
 import FullHeightPage from '~/components/FullHeightPage';
 import AuthForm from '~/components/AuthForm';
-import {
-    ActionFunction,
-    json,
-    createCookie,
-    Response,
-    Headers,
-    unstable_composeUploadHandlers,
-} from '@remix-run/node';
+import { ActionFunction, json } from '@remix-run/node';
 import { register } from '~/lib/api/auth';
 import { AppError, extractError } from '~/lib/error';
 import { ThrownResponse, useCatch } from '@remix-run/react';
